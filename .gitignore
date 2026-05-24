@@ -1,0 +1,10 @@
+# Entornos Python
+.venv/
+__pycache__/
+*.pyc
+
+# Datos generados (se recrean con el script)
+data/raw/*.csv
+
+# Sistema
+.DS_Store

@@ -1,0 +1,9 @@
+{
+  "n_skus": 40,
+  "years": 3,
+  "end_date": "2026-05-01",
+  "seed": 42,
+  "intermittent_frac": 0.2,
+  "noise_cv": 0.15,
+  "out_dir": "..\\data\\raw"
+}
