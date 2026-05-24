@@ -86,7 +86,7 @@ def load_series(path: str, sku: str, warehouse: str) -> pd.DataFrame:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", default="../data/raw/ventas.csv")
-    ap.add_argument("--sku", default="VESTIDO-VERDE-L")
+    ap.add_argument("--sku", default="BLUSA-AZUL-M")
     ap.add_argument("--warehouse", default="MAD")
     ap.add_argument("--horizon", type=int, default=30, help="días de test/predicción")
     ap.add_argument("--out-dir", default="../data/processed")
