@@ -64,3 +64,15 @@ def listar_transportistas(db: Session) -> list[dict]:
         "ORDER BY t.fiabilidad DESC, ta.zona"
     )).mappings().all()
     return [dict(f) for f in filas]
+
+
+def stock_disponible(db: Session, codigo_sku: str, codigo_almacen: str) -> int | None:
+    """Devuelve el stock disponible de un SKU en un almacén, o None si no existe la fila."""
+    fila = db.execute(text(
+        "SELECT st.disponible "
+        "FROM stock st "
+        "JOIN sku s ON s.id = st.sku_id "
+        "JOIN almacen a ON a.id = st.almacen_id "
+        "WHERE s.codigo_sku = :sku AND a.codigo = :alm"
+    ), {"sku": codigo_sku, "alm": codigo_almacen}).scalar()
+    return fila

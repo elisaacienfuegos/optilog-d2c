@@ -11,9 +11,9 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.repositories import inventario_repo
-from app.services import prediccion_service, simulador_service
+from app.services import prediccion_service, simulador_service, reaprovisionamiento_service
 from app.api.schemas import (
-    Almacen, Sku, Kpis, Prediccion, EnvioRequest, ResultadoSimulador,
+    Almacen, Sku, Kpis, Prediccion, EnvioRequest, ResultadoSimulador, Reaprovisionamiento,
 )
 
 router = APIRouter()
@@ -84,3 +84,31 @@ def post_simulador(envio: EnvioRequest):
         }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+# --------------------------- Reaprovisionamiento ---------------------------- #
+@router.get("/reaprovisionamiento/{sku}/{almacen}", response_model=Reaprovisionamiento,
+            tags=["Inventario"])
+def get_reaprovisionamiento(sku: str, almacen: str, lead_time: int = 7,
+                            nivel_servicio: float = 0.95,
+                            db: Session = Depends(get_db)):
+    """
+    Calcula el punto de reorden de un SKU a partir de la demanda PREVISTA por Prophet
+    y lo compara con el stock disponible, indicando si procede reaprovisionar. Este
+    endpoint materializa la integración entre predicción e inventario (RF-03, RF-09).
+    """
+    serie = inventario_repo.serie_historica(db, sku, almacen)
+    if not serie:
+        raise HTTPException(status_code=404,
+                            detail=f"No hay histórico para SKU '{sku}' en almacén '{almacen}'.")
+    disponible = inventario_repo.stock_disponible(db, sku, almacen)
+    if disponible is None:
+        raise HTTPException(status_code=404,
+                            detail=f"No hay registro de stock para SKU '{sku}' en almacén '{almacen}'.")
+    try:
+        # se predice el horizonte igual al lead time para estimar la demanda durante la reposición
+        pred = prediccion_service.predecir(serie, horizonte=lead_time)
+        return reaprovisionamiento_service.calcular_reorden(
+            pred["prediccion"], disponible, lead_time, nivel_servicio)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error en el cálculo: {e}")

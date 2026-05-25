@@ -68,3 +68,16 @@ class ResultadoSimulador(BaseModel):
     elegido: str
     coste_total_C: float
     justificacion: list[CandidatoSimulador]
+
+
+# --- Reaprovisionamiento ---
+class Reaprovisionamiento(BaseModel):
+    stock_disponible: int
+    demanda_media_diaria: float
+    desviacion_demanda: float
+    lead_time_dias: int
+    nivel_servicio: float
+    stock_seguridad: float
+    punto_reorden: float
+    reaprovisionar: bool
+    cantidad_sugerida: int
