@@ -41,3 +41,26 @@ def contar_kpis(db: Session) -> dict:
         "unidades_totales": int(total_uds),
         "transportistas": n_transp,
     }
+
+
+def serie_historica(db: Session, codigo_sku: str, codigo_almacen: str) -> list[dict]:
+    """Devuelve la serie temporal (fecha, unidades) de un SKU en un almacén."""
+    filas = db.execute(text(
+        "SELECT h.fecha, h.unidades "
+        "FROM historico_venta h "
+        "JOIN sku s ON s.id = h.sku_id "
+        "JOIN almacen a ON a.id = h.almacen_id "
+        "WHERE s.codigo_sku = :sku AND a.codigo = :alm "
+        "ORDER BY h.fecha"
+    ), {"sku": codigo_sku, "alm": codigo_almacen}).mappings().all()
+    return [dict(f) for f in filas]
+
+
+def listar_transportistas(db: Session) -> list[dict]:
+    """Devuelve transportistas con sus tarifas."""
+    filas = db.execute(text(
+        "SELECT t.nombre, t.fiabilidad, ta.zona, ta.coste_base, ta.plazo_dias "
+        "FROM transportista t JOIN tarifa ta ON ta.transportista_id = t.id "
+        "ORDER BY t.fiabilidad DESC, ta.zona"
+    )).mappings().all()
+    return [dict(f) for f in filas]
