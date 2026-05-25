@@ -8,3 +8,4 @@ data/raw/*.csv
 
 # Sistema
 .DS_Store
+.env
